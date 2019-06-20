@@ -1,0 +1,5 @@
+key-db-server/aria_*
+key-db-server/ib_*
+key-db-server/ib*
+key-db-server/multi-master.info
+key-db-server/tc.log

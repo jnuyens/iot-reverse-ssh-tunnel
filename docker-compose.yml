@@ -1,0 +1,33 @@
+version: '2'
+services:
+  iot-reverse-tunnel-api:
+    image: wyveo/nginx-php-fpm:php73
+    ports:
+      - "8080:80"
+    volumes:
+      - ./api-server/www-data:/usr/share/nginx/html
+
+  iot-reverse-tunnel-master-ssh-server:
+    #builds .docker/master-ssh-server/Dockerfile
+    build: 
+      context: ./master-ssh-server
+      dockerfile: Dockerfile
+    ports:
+      - "10000-20000:10000-20000"
+    volumes:
+      - ./master-ssh-server/ssh-keys/clients:/root/.ssh
+
+  iot-reverse-tunnel-key-db-server:
+    image: mariadb:10.2
+    environment:
+      MYSQL_ROOT_PASSWORD: changethistoyourverylongpasswd
+      MYSQL_DATABASE: iotkeydb
+      MYSQL_USER: iotkeydb
+      MYSQL_PASSWORD: changemetoanotherverylongpasswd
+    logging:
+      driver: syslog
+      options:
+        tag: "{{.DaemonName}}(image={{.ImageName}};name={{.Name}};id={{.ID}})"
+    restart: on-failure
+    volumes:
+      - ./key-db-server/db-data:/var/lib/mysql

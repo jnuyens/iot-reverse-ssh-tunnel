@@ -1,0 +1,32 @@
+FROM alpine
+MAINTAINER Jasper Nuyens <jasper at linux.com>
+#Container to run reverse ssh server with public IP
+#multiple servers can run with each maximum 10.000 devices per public IP
+#ensure to set the ENV variables below: PASSWORD and KEYS
+
+RUN apk --update add openssh
+COPY sshd-setup.sh /usr/local/bin/
+
+# Expose the regular ssh port and a port for each IoT device (max 10.000 per container)
+EXPOSE 22
+EXPOSE 10000-20000
+
+# Set the password of the root user for the container - eases management
+# Normally we prefer containers without root pw - but as the only service
+# is openssh, an exception is acceptable.
+# If this isnot set, one will be generated for you at first start of the 
+# containter
+ENV PASSWORD="yourverylongpassword"
+
+# You can modify the (internal) location to store the host keys
+# with the following variable. You would probably want to expose the
+# volume.
+ENV KEYS="/opt/iot-reverse-ssh-tunnel/ssh-keys"
+
+# Where to store the host keys (to arrange for proper restarts/recreations)
+VOLUME /etc/ssh/keys
+
+# Store authorised keys
+VOLUME /root/.ssh
+
+ENTRYPOINT /usr/local/bin/sshd-setup.sh
